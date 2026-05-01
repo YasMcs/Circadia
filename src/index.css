@@ -1,0 +1,172 @@
+/* =========================================================================
+   --- CSS: CORE VARIABLES & RESET ---
+   ========================================================================= */
+:root {
+  --bg-color: #050505;
+  --cyan: #00f2ff;
+  --violet: #bc13fe;
+  --red: #ff0050;
+  --text-main: #ffffff;
+  --text-muted: #888888;
+  --font-ui: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body, html {
+  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg-color);
+  font-family: var(--font-ui); color: var(--text-main);
+}
+
+/* Auroras de fondo sutiles para que el Glassmorphism funcione */
+body::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    radial-gradient(circle at 15% 20%, rgba(0, 242, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(188, 19, 254, 0.03) 0%, transparent 40%);
+  z-index: 0; pointer-events: none;
+}
+
+* { box-sizing: border-box; }
+
+#p5-container {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
+}
+#ui-layer {
+  position: relative; z-index: 10; width: 100%; height: 100%; display: flex;
+}
+
+.module {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: row; opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translateY(20px);
+}
+.module.active {
+  opacity: 1; pointer-events: all; transform: translateY(0);
+}
+
+/* =========================================================================
+   --- CSS: TIPOGRAFÍA & COMPONENTES UI ---
+   ========================================================================= */
+/* Títulos con Inter (Elegante, Suave) */
+h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 300; margin: 0; }
+h1 { font-size: 3.2rem; letter-spacing: 2px; }
+
+/* Datos duros con JetBrains (Cyber) */
+.mono-text { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: #888; }
+
+p { margin: 0; line-height: 1.6; color: var(--text-muted); }
+
+.btn-icon {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; width: 38px; height: 38px; border-radius: 50%;
+  cursor: pointer; display: flex; justify-content: center; align-items: center;
+  transition: all 0.3s; flex-shrink: 0; outline: none;
+}
+.btn-icon:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #fff; transform: scale(1.1); }
+
+.btn {
+  width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+  color: #fff; padding: 16px 24px; border-radius: 12px;
+  font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.4s ease; outline: none;
+}
+.btn:hover {
+  background: rgba(255,255,255,0.1); transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.2);
+}
+
+.input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.input-group label { font-family: var(--font-mono); font-size: 0.7rem; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+.input-modern {
+  background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px; color: #fff; padding: 16px 20px; font-family: var(--font-ui); font-size: 1rem;
+  outline: none; transition: all 0.3s ease; width: 100%;
+}
+.input-modern:focus { background: rgba(15, 15, 15, 0.8); border-color: rgba(255, 255, 255, 0.3); }
+
+.glass-select {
+  background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 14px; font-family: var(--font-ui); outline: none; width: 100%;
+}
+
+/* =========================================================================
+   --- CSS: ARQUITECTURA "GLASS WIDGET" (SUAVE Y PREMIUM) ---
+   ========================================================================= */
+.glass-widget {
+  background: rgba(20, 20, 20, 0.4);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 24px;
+  padding: 30px; display: flex; flex-direction: column; gap: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* DOCK PRINCIPAL DE NAVEGACIÓN */
+.main-dock {
+  display: flex; gap: 30px; padding: 10px 40px; border-radius: 40px;
+  background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+}
+.dock-btn {
+  background: none; border: none; color: #666; font-family: var(--font-mono);
+  font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.3s; padding: 10px;
+}
+.dock-btn:hover { color: #fff; }
+.dock-btn.active { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+
+/* TAREAS / ITEMS */
+.task-item {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03);
+  border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between;
+  align-items: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.task-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--task-color, #fff); transition: width 0.3s ease; opacity: 0.5;
+}
+.task-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); border-color: rgba(255,255,255,0.1); }
+.task-item:hover::before { width: 5px; opacity: 1; }
+
+.task-title { font-weight: 400; font-size: 1rem; color: #fff; }
+.task-tag { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
+
+/* MISC */
+.nav-link { background: none; border: none; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: color 0.3s; padding: 0; outline: none; }
+
+/* CHAT NEUROTUTOR */
+.chat-bubble-ai { display: flex; gap: 15px; align-items: flex-start; max-width: 85%; }
+.chat-bubble-user { display: flex; justify-content: flex-end; width: 100%; margin-bottom: 10px; }
+.chat-bubble-user .chat-text { background: rgba(0, 242, 255, 0.1); border: 1px solid rgba(0, 242, 255, 0.2); color: #fff; padding: 15px 20px; border-radius: 20px 20px 0 20px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; }
+.chat-bubble-ai .ai-avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--cyan); color: #000; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold; flex-shrink: 0; box-shadow: 0 0 15px rgba(0, 242, 255, 0.4); }
+.chat-bubble-ai .chat-text { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); padding: 15px 20px; border-radius: 20px 20px 20px 0; color: #ddd; line-height: 1.6; font-size: 0.95rem; }
+.chat-bubble-ai .chat-text b { color: #fff; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.ai-spinner { border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--cyan); border-radius: 50%; animation: spin 1s linear infinite; }
+
+/* =========================================================================
+   --- CSS: ANIMACIONES SCROLL (REVEAL) & CARDS ---
+   ========================================================================= */
+.reveal-elem {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.reveal-elem.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-feature {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-feature:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.15);
+  background: rgba(30, 30, 30, 0.6);
+}
