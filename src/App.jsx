@@ -6,11 +6,464 @@ const triggerReaction = (type = 'click') => {
   if (window.triggerOrbReaction) window.triggerOrbReaction(type);
 };
 
+const taskOptions = [
+  { value: 'alta', label: 'Alta Carga Cognitiva', desc: 'Análisis profundo, lógica compleja, o creación desde cero.', color: 'var(--cyan)' },
+  { value: 'creativa', label: 'Carga Media', desc: 'Lectura de comprensión, redacción, o diseño visual.', color: 'var(--violet)' },
+  { value: 'admin', label: 'Baja Carga', desc: 'Organización, correos, tareas rutinarias.', color: '#ffb400' }
+];
+
+const CustomDropdown = ({ value, onChange, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className="custom-dropdown" ref={dropdownRef} style={{ position: 'relative', marginBottom: '20px', width: '100%' }}>
+      <div 
+        className={`dropdown-header ${isOpen ? 'open' : ''}`}
+        onClick={() => {
+          triggerReaction('click');
+          setIsOpen(!isOpen);
+        }}
+        style={{
+          padding: '15px',
+          background: 'rgba(20,20,20,0.8)',
+          border: isOpen ? '1px solid var(--cyan)' : '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '0.85rem',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        <span style={{ color: selectedOption ? selectedOption.color : '#fff', fontWeight: 500 }}>
+          {selectedOption ? selectedOption.label : 'Seleccionar...'}
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }}>
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+      
+      {isOpen && (
+        <div className="dropdown-options glass-widget" style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          marginTop: '8px',
+          padding: '8px',
+          zIndex: 50,
+          background: 'rgba(15,15,15,0.95)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '12px',
+          backdropFilter: 'blur(15px)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+        }}>
+          {options.map((opt) => (
+            <div 
+              key={opt.value}
+              className="dropdown-option"
+              onClick={() => {
+                triggerReaction('click');
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: '12px 15px',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '5px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.transform = 'translateX(5px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.transform = 'translateX(0)';
+              }}
+            >
+              <span style={{ color: opt.color, fontWeight: 600, fontSize: '0.85rem', letterSpacing: '1px' }}>{opt.label.toUpperCase()}</span>
+              <span style={{ fontSize: '0.7rem', color: '#999' }}>{opt.desc}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CustomDatePicker = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date()); // Fecha para navegar el calendario
+  const containerRef = useRef(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  
+  const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+  const changeMonth = (offset) => {
+    const next = new Date(viewDate);
+    next.setMonth(next.getMonth() + offset);
+    setViewDate(next);
+  };
+
+  return (
+    <div ref={containerRef} style={{ flex: 1.5, position: 'relative' }}>
+      <label className="mono-text" style={{ fontSize: '0.65rem', position: 'absolute', top: '8px', left: '15px', color: 'rgba(255,255,255,0.7)', pointerEvents: 'none', zIndex: 5 }}>FECHA</label>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="input-modern" 
+        style={{ cursor: 'pointer', fontSize: '0.8rem', padding: '22px 15px 10px 15px', background: 'rgba(255,255,255,0.02)', color: value ? '#fff' : '#555' }}
+      >
+        {value || 'Seleccionar'}
+      </div>
+
+      {isOpen && (
+        <div className="dropdown-options glass-widget" style={{ 
+          position: 'absolute', top: '100%', left: 0, width: '300px', marginTop: '8px', zIndex: 100, padding: '20px', 
+          background: 'rgba(15,15,15,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(15px)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' 
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', color: '#fff', opacity: 0.5, cursor: 'pointer', fontSize: '1rem' }}>&lt;</button>
+            <div className="mono-text" style={{ fontSize: '0.6rem', color: 'var(--cyan)' }}>{monthNames[month]} {year}</div>
+            <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', color: '#fff', opacity: 0.5, cursor: 'pointer', fontSize: '1rem' }}>&gt;</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' }}>
+            {['D','L','M','X','J','V','S'].map(d => <div key={d} style={{ textAlign: 'center', fontSize: '0.5rem', color: '#fff', opacity: 0.3 }}>{d}</div>)}
+            {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const d = i + 1;
+              const dateStr = `${year}-${(month+1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+              const isActive = value === dateStr;
+              return (
+                <div 
+                  key={d} 
+                  onClick={() => { onChange(dateStr); setIsOpen(false); }}
+                  style={{ 
+                    padding: '8px 0', textAlign: 'center', fontSize: '0.75rem', borderRadius: '5px', cursor: 'pointer',
+                    background: isActive ? 'var(--cyan)' : 'transparent',
+                    color: isActive ? '#000' : '#fff',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => !isActive && (e.target.style.background = 'rgba(255,255,255,0.05)')}
+                  onMouseLeave={e => !isActive && (e.target.style.background = 'transparent')}
+                >
+                  {d}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CustomTimePicker = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  const minutes = Array.from({ length: 4 }, (_, i) => (i * 15).toString().padStart(2, '0'));
+
+  const [hVal, mVal] = value ? value.split(':') : ['12', '00'];
+
+  return (
+    <div ref={containerRef} style={{ flex: 1, position: 'relative' }}>
+      <label className="mono-text" style={{ fontSize: '0.65rem', position: 'absolute', top: '8px', left: '15px', color: 'rgba(255,255,255,0.7)', pointerEvents: 'none', zIndex: 5 }}>HORA</label>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="input-modern" 
+        style={{ cursor: 'pointer', fontSize: '0.8rem', padding: '22px 15px 10px 15px', background: 'rgba(255,255,255,0.02)', color: value ? '#fff' : '#555' }}
+      >
+        {value || 'HH:MM'}
+      </div>
+
+      {isOpen && (
+        <div className="dropdown-options glass-widget" style={{ 
+          position: 'absolute', top: '100%', right: 0, width: '220px', marginTop: '8px', zIndex: 100, padding: '10px 0', 
+          background: 'rgba(15,15,15,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(15px)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', 
+          display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '260px' 
+        }}>
+          <div style={{ display: 'flex', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '5px' }}>
+            <div className="mono-text" style={{ flex: 1, fontSize: '0.6rem', textAlign: 'center', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>HORARIO</div>
+            <div className="mono-text" style={{ flex: 1, fontSize: '0.6rem', textAlign: 'center', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>MINUTERO</div>
+          </div>
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '0 5px' }}>
+              {hours.map(h => (
+                <div key={h} onClick={() => onChange(`${h}:${mVal}`)} style={{ padding: '12px 0', textAlign: 'center', fontSize: '0.85rem', borderRadius: '8px', cursor: 'pointer', background: hVal === h ? 'var(--violet)' : 'transparent', color: hVal === h ? '#000' : '#fff', margin: '2px 0' }}>{h}</div>
+              ))}
+            </div>
+            <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '0 5px' }}>
+              {minutes.map(m => (
+                <div key={m} onClick={() => onChange(`${hVal}:${m}`)} style={{ padding: '12px 0', textAlign: 'center', fontSize: '0.85rem', borderRadius: '8px', cursor: 'pointer', background: mVal === m ? 'var(--violet)' : 'transparent', color: mVal === m ? '#000' : '#fff', margin: '2px 0' }}>{m}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const BioAvatar = ({ type }) => {
+  const isWolf = type?.toLowerCase().includes('lobo') || type?.toLowerCase().includes('wolf');
+  const isLion = type?.toLowerCase().includes('león') || type?.toLowerCase().includes('lion');
+  const isDolphin = type?.toLowerCase().includes('delfín') || type?.toLowerCase().includes('dolphin');
+  
+  const finalColor = isWolf ? 'var(--red)' : isLion ? 'var(--cyan)' : isDolphin ? 'var(--cyan)' : 'var(--violet)';
+  const bgColor = isWolf ? '#2a0a10' : isLion ? '#0a252a' : '#1a0a2a';
+
+  return (
+    <div className="bio-avatar-thumbs" style={{ position: 'relative', width: '150px', height: '150px', margin: '0 auto 35px auto' }}>
+      {/* Fondo Circular con Cristal */}
+      <div style={{ 
+        position: 'absolute', inset: 0, borderRadius: '50%', 
+        background: bgColor,
+        border: '2px solid rgba(255,255,255,0.1)',
+        boxShadow: `0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px ${finalColor}22`,
+        overflow: 'hidden'
+      }}>
+        <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', marginTop: '15px' }}>
+          {/* Cuerpo Sólido estilo Thumbs */}
+          <path 
+            d="M25,100 Q25,20 50,20 Q75,20 75,100" 
+            fill={finalColor}
+          />
+          
+          {/* Rasgos según animal (Simplificados estilo Thumbs) */}
+          {isLion && (
+            <path d="M20,40 Q10,15 50,10 Q90,15 80,40" fill="rgba(255,255,255,0.2)" />
+          )}
+          {isWolf && (
+            <>
+              <path d="M25,30 L15,10 L40,25" fill={finalColor} />
+              <path d="M75,30 L85,10 L60,25" fill={finalColor} />
+            </>
+          )}
+          
+          {/* Cara Expresiva Thumbs */}
+          <g fill="#000" opacity="0.8">
+            {/* Ojos */}
+            <circle cx="40" cy="48" r="3.5" />
+            <circle cx="60" cy="48" r="3.5" />
+            {/* Sonrisa amigable */}
+            <path d="M42,62 Q50,68 58,62" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" />
+          </g>
+          
+          {/* Brillo de superficie (Lujo) */}
+          <path d="M35,30 Q40,25 45,30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+      
+      {/* Glow externo */}
+      <div style={{ position: 'absolute', inset: '-10px', borderRadius: '50%', border: `1px solid ${finalColor}33`, filter: 'blur(5px)', pointerEvents: 'none' }}></div>
+    </div>
+  );
+};
+
+const MindMapMock = ({ topic }) => {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+
+  // MOCK DATA: Esto vendría de la IA. Podrían ser 3 o 7 temas y se ajustaría igual.
+  const rawData = [
+    { label: 'Principios', items: ['Entropía', 'Equilibrio'] },
+    { label: 'Leyes', items: ['Conservación', 'Degradación'] },
+    { label: 'Sistemas', items: ['Abiertos', 'Cerrados'] },
+    { label: 'Variables', items: ['P, V, T', 'Entalpía'] },
+    { label: 'Procesos', items: ['Isotérmicos', 'Adiabáticos'] }
+  ];
+
+  // Motor de Layout Radial: Calcula posiciones automáticamente
+  const centerX = 500;
+  const centerY = 500;
+  const radius = 350;
+
+  const branches = rawData.map((b, i) => {
+    const angle = (i * 2 * Math.PI) / rawData.length - Math.PI / 2;
+    return {
+      ...b,
+      id: i,
+      x: centerX + radius * Math.cos(angle),
+      y: centerY + radius * Math.sin(angle),
+      delay: `${i * 0.1}s`
+    };
+  });
+
+  const onMouseDown = (e) => {
+    setIsDragging(true);
+    setLastPos({ x: e.clientX, y: e.clientY });
+  };
+
+  const onMouseMove = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastPos.x;
+    const dy = e.clientY - lastPos.y;
+    setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+    setLastPos({ x: e.clientX, y: e.clientY });
+  };
+
+  const onMouseUp = () => setIsDragging(false);
+
+  return (
+    <div 
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      style={{ 
+        position: 'relative', width: '100%', height: '100%', overflow: 'hidden', 
+        cursor: isDragging ? 'grabbing' : 'grab', userSelect: 'none'
+      }}
+    >
+      <div style={{ 
+        position: 'absolute', width: '1000px', height: '1000px',
+        left: '50%', top: '50%',
+        transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
+        transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}>
+        
+        {/* Dynamic Connections */}
+        <svg viewBox="0 0 1000 1000" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+          <defs>
+            <filter id="miniGlow">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          {branches.map(b => (
+            <g key={b.id}>
+              <line 
+                x1="500" y1="500" x2={b.x} y2={b.y} 
+                stroke="rgba(0, 242, 255, 0.15)" strokeWidth="1" filter="url(#miniGlow)" 
+              />
+              <circle r="2" fill="var(--cyan)">
+                <animateMotion dur="3s" repeatCount="indefinite" path={`M500,500 L${b.x},${b.y}`} />
+              </circle>
+            </g>
+          ))}
+        </svg>
+
+        {/* Minimal Core */}
+        <div style={{
+          position: 'absolute', top: '500px', left: '500px', transform: 'translate(-50%, -50%)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 5, pointerEvents: 'none'
+        }}>
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)', marginBottom: '12px', boxShadow: '0 0 15px var(--cyan)' }}></div>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '4px' }}>{topic}</h3>
+        </div>
+
+        {/* Adaptive Nodes */}
+        {branches.map(b => (
+          <div key={b.id} style={{
+            position: 'absolute', left: `${b.x}px`, top: `${b.y}px`, transform: 'translate(-50%, -50%)',
+            width: '180px', background: 'rgba(255,255,255,0.02)', borderLeft: '2px solid var(--cyan)',
+            padding: '10px 15px', zIndex: 10, animation: 'revealIn 0.8s ease forwards', 
+            animationDelay: b.delay, opacity: 0
+          }}>
+            <div className="mono-text" style={{ color: 'var(--cyan)', fontSize: '0.55rem', marginBottom: '6px' }}>{b.label}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {b.items.map((item, idx) => (
+                <div key={idx} style={{ fontSize: '0.8rem', color: '#777', fontWeight: 300 }}>{item}</div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const FlashcardsMock = ({ topic }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <div 
+        onClick={() => setIsFlipped(!isFlipped)}
+        style={{ 
+          width: '450px', height: '280px', cursor: 'pointer', perspective: '1200px',
+          position: 'relative'
+        }}
+      >
+        <div style={{
+          width: '100%', height: '100%', transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+          transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
+          position: 'relative'
+        }}>
+          {/* Front */}
+          <div style={{
+            position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden',
+            background: 'linear-gradient(135deg, rgba(188, 19, 254, 0.1) 0%, rgba(188, 19, 254, 0.05) 100%)',
+            border: '1px solid rgba(188, 19, 254, 0.3)', borderRadius: '30px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)'
+          }}>
+            <div className="mono-text" style={{ color: 'var(--violet)', fontSize: '0.65rem', marginBottom: '25px', letterSpacing: '4px' }}>CONCEPTO</div>
+            <p style={{ fontSize: '1.6rem', textAlign: 'center', fontWeight: 300, lineHeight: 1.4 }}>¿Cómo afecta el aumento de entropía al orden de un sistema?</p>
+          </div>
+
+          {/* Back */}
+          <div style={{
+            position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden',
+            background: 'rgba(15, 15, 15, 0.98)', transform: 'rotateY(180deg)',
+            border: '1px solid var(--violet)', borderRadius: '30px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px',
+            boxShadow: '0 0 50px rgba(188, 19, 254, 0.15)', backdropFilter: 'blur(20px)'
+          }}>
+            <div className="mono-text" style={{ color: 'var(--violet)', fontSize: '0.65rem', marginBottom: '25px', letterSpacing: '4px' }}>RESPUESTA</div>
+            <p style={{ fontSize: '1.1rem', textAlign: 'center', lineHeight: 1.8, color: '#bbb', fontWeight: 300 }}>
+              El aumento de entropía implica que el sistema pasa de un estado más ordenado a uno de mayor desorden estadístico, disipando energía útil.
+            </p>
+          </div>
+        </div>
+      </div>
+      <p className="mono-text" style={{ marginTop: '50px', color: '#555', fontSize: '0.6rem', letterSpacing: '3px' }}>CLIC PARA GIRAR • 01 / 12 TARJETAS</p>
+    </div>
+  );
+};
+
 export default function App() {
   const [currentView, setCurrentView] = useState('auth'); // auth, onboarding, intro, dashboard, agenda, study
   const [authSubState, setAuthSubState] = useState('welcome'); // welcome, login, register
   const [chronotype, setChronotype] = useState(null);
   const [energyLevel, setEnergyLevel] = useState(0.5);
+  const [energyOverride, setEnergyOverride] = useState(5); // Escala 1-10, donde 5 es neutral
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Entregar proyecto de React', tag: 'alta', deadline: 'Hoy 23:59' },
     { id: 2, title: 'Repaso para examen de Física', tag: 'creativa', deadline: 'Mañana' },
@@ -21,8 +474,15 @@ export default function App() {
   const [taskInput, setTaskInput] = useState('');
   const [taskTag, setTaskTag] = useState('alta');
   const [chatInput, setChatInput] = useState('');
+  const [chatMode, setChatMode] = useState('chat'); // chat, mindmap, flashcards
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+  const [isNavbarCollapsed, setIsNavbarCollapsed] = useState(false);
+  const [panelContent, setPanelContent] = useState(null);
+  const [taskDate, setTaskDate] = useState('');
+  const [taskTime, setTaskTime] = useState('');
   const [chatHistory, setChatHistory] = useState([
-    { role: 'ai', content: 'Hola. Soy Lumi. Estoy monitorizando tu pulso cognitivo en tiempo real. Dime qué necesitas revisar hoy y ajustaré mis respuestas de texto a tu energía actual para que puedas leer sin quemarte. Escríbeme cuando estés listo.', status: 'ready' }
+    { role: 'ai', content: 'Hola. Soy Lumi. Estoy monitorizando tu pulso cognitivo en tiempo real. Selecciona cómo quieres aprender hoy (Chat, Mapa Mental o Flashcards) y dime qué necesitas revisar.', status: 'ready' }
   ]);
   
   const [pomodoro, setPomodoro] = useState({ active: false, timeLeft: 25 * 60, taskName: 'Sesión Libre' });
@@ -85,6 +545,12 @@ export default function App() {
       else if (effectiveHour >= 22) e = mapScale(effectiveHour, 22, 24, 0.3, 0.0);
       else if (effectiveHour < 6) e = mapScale(effectiveHour, 0, 6, 0.0, 0.3);
     }
+
+    // Aplicar overrides manuales basados en escala 1-10
+    // 5 es neutro (1x). <5 baja energía. >5 sube energía.
+    const multiplier = energyOverride / 5;
+    e = Math.min(1, e * multiplier);
+
     setEnergyLevel(e);
   };
 
@@ -177,10 +643,18 @@ export default function App() {
   };
 
   const addTask = () => {
-    triggerReaction('click');
     if (!taskInput.trim()) return;
-    setTasks([{ id: Date.now(), title: taskInput, tag: taskTag, deadline: 'Próximamente' }, ...tasks]);
+    const newTask = {
+      id: Date.now(),
+      title: taskInput,
+      tag: taskTag,
+      deadline: (taskDate && taskTime) ? `${taskDate} | ${taskTime}` : taskDate || taskTime || 'Próximamente'
+    };
+    setTasks([...tasks, newTask]);
     setTaskInput('');
+    setTaskDate('');
+    setTaskTime('');
+    triggerReaction('click');
   };
 
   const handleTaskClick = (id, tag, title) => {
@@ -227,27 +701,43 @@ export default function App() {
     setChatHistory(h => [...h, { role: 'user', content: topic }]);
     setChatInput('');
     
-    // Loading state
     const loadingId = Date.now();
-    setChatHistory(h => [...h, { role: 'ai', content: 'Lumi procesando tu estado...', status: 'loading', id: loadingId }]);
-
-    setTimeout(() => {
-      triggerReaction('click');
-      setChatHistory(h => h.map(msg => {
-        if (msg.id === loadingId) {
-          let reply = '';
-          if (energyLevel > 0.6) {
-            reply = `[ ESTADO ÓPTIMO DETECTADO ]\nEstás en tu pico cognitivo. Para el tema de ${topic}, te recomiendo enfocarnos en la lógica profunda. ¿Quieres que te escriba el desglose completo de la teoría o prefieres hacer un ejercicio práctico?`;
-          } else if (energyLevel < 0.4) {
-            reply = `[ FATIGA DETECTADA ]\nNoto que tu energía está muy baja ahora. No intentemos asimilar nada pesado sobre ${topic}. Te he preparado un resumen textual rápido de 3 puntos clave para leer sin esfuerzo. ¿Te lo muestro?`;
-          } else {
-            reply = `[ ESTADO ESTABLE ]\nTu energía está en niveles medios. Vamos a repasar ${topic} a un ritmo tranquilo. Te daré la teoría general por texto y tú me dices si quieres profundizar en alguna parte.`;
+    
+    if (chatMode === 'chat') {
+      setChatHistory(h => [...h, { role: 'ai', content: 'Lumi procesando tu estado...', status: 'loading', id: loadingId }]);
+      setTimeout(() => {
+        triggerReaction('click');
+        setChatHistory(h => h.map(msg => {
+          if (msg.id === loadingId) {
+            let reply = '';
+            if (energyLevel > 0.6) {
+              reply = `[ ESTADO ÓPTIMO DETECTADO ]\nEstás en tu pico cognitivo. Para el tema de ${topic}, te recomiendo enfocarnos en la lógica profunda. ¿Quieres que te escriba el desglose completo de la teoría o prefieres hacer un ejercicio práctico?`;
+            } else if (energyLevel < 0.4) {
+              reply = `[ FATIGA DETECTADA ]\nNoto que tu energía está muy baja ahora. No intentemos asimilar nada pesado sobre ${topic}. Te he preparado un resumen textual rápido de 3 puntos clave para leer sin esfuerzo. ¿Te lo muestro?`;
+            } else {
+              reply = `[ ESTADO ESTABLE ]\nTu energía está en niveles medios. Vamos a repasar ${topic} a un ritmo tranquilo. Te daré la teoría general por texto y tú me dices si quieres profundizar en alguna parte.`;
+            }
+            return { ...msg, content: reply, status: 'ready', energyLevel: energyLevel };
           }
-          return { ...msg, content: reply, status: 'ready', energyLevel: energyLevel };
-        }
-        return msg;
-      }));
-    }, 1500);
+          return msg;
+        }));
+      }, 1500);
+    } else {
+      setChatHistory(h => [...h, { role: 'ai', content: `Iniciando síntesis visual: ${chatMode === 'mindmap' ? 'Mapa Mental' : 'Flashcards'} sobre "${topic}"...`, status: 'loading', id: loadingId }]);
+      setIsPanelOpen(true);
+      setPanelContent({ type: chatMode, topic: topic, status: 'loading' });
+
+      setTimeout(() => {
+        triggerReaction('click');
+        setChatHistory(h => h.map(msg => {
+          if (msg.id === loadingId) {
+            return { ...msg, content: `¡Listo! He estructurado la información a la derecha para que la repases. Puedes seguir preguntándome detalles por aquí.`, status: 'ready', energyLevel: energyLevel };
+          }
+          return msg;
+        }));
+        setPanelContent(prev => ({ ...prev, status: 'ready' }));
+      }, 2500);
+    }
   };
 
   // Onboarding Data
@@ -284,19 +774,52 @@ export default function App() {
   return (
     <>
       {/* GLOBAL TOP BAR */}
-      <div id="global-top-bar" style={{ display: ['auth', 'onboarding', 'intro'].includes(currentView) ? 'none' : 'grid', position: 'absolute', top: 0, left: 0, width: '100%', padding: '25px 50px', zIndex: 100, pointerEvents: 'none', gridTemplateColumns: '1fr auto 1fr', alignItems: 'flex-start' }}>
-        <div style={{ pointerEvents: 'all', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+      <div id="global-top-bar" style={{ 
+        display: ['auth', 'onboarding', 'intro'].includes(currentView) ? 'none' : 'grid', 
+        position: 'absolute', top: 0, left: 0, width: '100%', padding: '25px 50px', 
+        zIndex: 100, pointerEvents: 'none', gridTemplateColumns: '1fr auto 1fr', alignItems: 'flex-start',
+        opacity: isNavbarCollapsed ? 0 : 1, transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: isNavbarCollapsed ? 'translateY(-20px)' : 'translateY(0)'
+      }}>
+        <div style={{ pointerEvents: isNavbarCollapsed ? 'none' : 'all', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <div id="dash-time" style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, lineHeight: 1 }}>
             {time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
           </div>
-          <div id="dash-chrono" className="mono-text" style={{ color: 'var(--cyan)', marginTop: '5px' }}>{chronotype || 'Calculando...'}</div>
+          <div id="dash-chrono" className="mono-text" style={{ color: 'var(--cyan)', marginTop: '5px', fontSize: '0.7rem', opacity: 0.7 }}>{chronotype || 'OSO (INTERMEDIO)'}</div>
+          
+          {/* NEURO-STATUS INDICATOR */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ 
+              width: '6px', height: '6px', borderRadius: '50%', 
+              background: energyLevel > 0.6 ? 'var(--cyan)' : energyLevel < 0.4 ? '#ff2d55' : 'var(--violet)',
+              boxShadow: `0 0 12px ${energyLevel > 0.6 ? 'var(--cyan)' : energyLevel < 0.4 ? '#ff2d55' : 'var(--violet)'}`,
+              animation: 'pulse 2s infinite ease-in-out'
+            }}></div>
+            <div className="mono-text" style={{ fontSize: '0.55rem', letterSpacing: '1px', color: energyLevel > 0.6 ? 'var(--cyan)' : energyLevel < 0.4 ? '#ff2d55' : 'var(--violet)' }}>
+              {energyLevel > 0.6 ? 'EN TRANCE (FLOW)' : energyLevel < 0.4 ? 'NIVEL DE FATIGA ALTO' : 'EQUILIBRIO COGNITIVO'}
+            </div>
+          </div>
         </div>
 
         <div style={{ pointerEvents: 'all', display: 'flex', justifyContent: 'center' }}>
-          <div className="main-dock">
-            <button className={`dock-btn ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => navTo('dashboard')}>ESTADO</button>
-            <button className={`dock-btn ${currentView === 'agenda' ? 'active' : ''}`} onClick={() => navTo('agenda')}>AGENDA</button>
-            <button className={`dock-btn ${currentView === 'study' ? 'active' : ''}`} onClick={() => navTo('study')}>LUMI</button>
+          <div className="main-dock" style={{ 
+            padding: isNavbarCollapsed ? '10px 15px' : '10px 40px', 
+            borderRadius: isNavbarCollapsed ? '20px' : '40px',
+            gap: isNavbarCollapsed ? '10px' : '30px',
+            transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <button className={`dock-btn ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => navTo('dashboard')} style={{ padding: isNavbarCollapsed ? '10px' : '10px' }}>
+              {isNavbarCollapsed ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> : 'ESTADO'}
+            </button>
+            <button className={`dock-btn ${currentView === 'agenda' ? 'active' : ''}`} onClick={() => navTo('agenda')} style={{ padding: isNavbarCollapsed ? '10px' : '10px' }}>
+              {isNavbarCollapsed ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> : 'AGENDA'}
+            </button>
+            <button className={`dock-btn ${currentView === 'study' ? 'active' : ''}`} onClick={() => navTo('study')} style={{ padding: isNavbarCollapsed ? '10px' : '10px' }}>
+              {isNavbarCollapsed ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> : 'LUMI'}
+            </button>
+            <button className={`dock-btn ${currentView === 'profile' ? 'active' : ''}`} onClick={() => navTo('profile')} style={{ padding: '0 10px', display: 'flex', alignItems: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: currentView === 'profile' ? 1 : 0.6 }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </button>
           </div>
         </div>
 
@@ -304,8 +827,8 @@ export default function App() {
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '10px 20px 10px 25px', borderRadius: '40px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(15px)' }}>
             <div style={{ textAlign: 'right' }}>
               <div id="pomodoro-time" style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 700, color: '#888', lineHeight: 1 }}>{renderPomodoroTime()}</div>
-              <div id="pomodoro-status" className="mono-text" style={{ fontSize: '0.6rem', color: pomodoro.active ? 'var(--cyan)' : '#555', marginTop: '5px', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {pomodoro.active ? `En curso: ${pomodoro.taskName}` : pomodoro.timeLeft === 0 ? 'Descanso' : pomodoro.timeLeft < 25 * 60 ? 'Pausado' : 'Sin Tarea Activa'}
+              <div id="pomodoro-status" className="mono-text" style={{ fontSize: '0.6rem', color: pomodoro.active ? 'var(--cyan)' : '#555', marginTop: '5px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                {pomodoro.active ? `EN CURSO: ${pomodoro.taskName}` : pomodoro.timeLeft === 0 ? 'DESCANSO' : pomodoro.timeLeft < 25 * 60 ? 'PAUSADO' : 'SIN TAREA ACTIVA'}
               </div>
             </div>
             <button className="btn-icon" onClick={togglePomodoro} style={{ width: '45px', height: '45px', borderColor: 'rgba(255,255,255,0.1)' }}>
@@ -439,118 +962,328 @@ export default function App() {
       )}
 
       {currentView === 'dashboard' && (
-        <div id="mod-dashboard" className="module active">
-          <div className="glass-widget" style={{ position: 'absolute', left: '60px', bottom: '80px', width: '350px' }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '5px' }}>Inbox Rápido</h3>
-            <p className="mono-text" style={{ fontSize: '0.65rem', marginBottom: '20px' }}>Captura tareas antes de olvidarlas.</p>
-            <input type="text" value={taskInput} onChange={e => setTaskInput(e.target.value)} placeholder="Ej: Terminar mapa mental..." className="input-modern" style={{ marginBottom: '10px', fontSize: '0.9rem', padding: '12px 15px' }} />
-            <select value={taskTag} onChange={e => setTaskTag(e.target.value)} className="glass-select" style={{ marginBottom: '15px', padding: '12px 15px', fontSize: '0.85rem' }}>
-              <option value="alta" style={{ background: '#111' }}>Alta Carga (Matemáticas)</option>
-              <option value="creativa" style={{ background: '#111' }}>Carga Media (Leer/Escribir)</option>
-              <option value="admin" style={{ background: '#111' }}>Baja Carga (Organizar)</option>
-            </select>
-            <button className="btn" style={{ padding: '12px' }} onClick={addTask}>Añadir a la Agenda</button>
+        <div id="mod-dashboard" className="module active" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100vh', width: '100%', padding: '0 80px', boxSizing: 'border-box', pointerEvents: 'none', position: 'absolute', top: 0, left: 0, zIndex: 10 }}>
+          <div className="glass-widget" style={{ width: '380px', pointerEvents: 'all' }}>
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>Inbox Rápido</h3>
+            <p className="mono-text" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '25px', letterSpacing: '1px' }}>CAPTURA TAREAS ANTES DE OLVIDARLAS.</p>
+            <input type="text" value={taskInput} onChange={e => setTaskInput(e.target.value)} placeholder="¿Qué tarea tienes pendiente?" className="input-modern" style={{ marginBottom: '12px', fontSize: '0.9rem', padding: '15px' }} />
+            
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+              <CustomDatePicker value={taskDate} onChange={setTaskDate} />
+              <CustomTimePicker value={taskTime} onChange={setTaskTime} />
+            </div>
+
+            <CustomDropdown value={taskTag} onChange={setTaskTag} options={taskOptions} />
+            <button className="btn" style={{ padding: '15px', width: '100%', fontSize: '0.85rem', letterSpacing: '2px' }} onClick={addTask}>AÑADIR A LA AGENDA</button>
           </div>
 
-          <div className="glass-widget" style={{ position: 'absolute', right: '60px', bottom: '120px', width: '350px' }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '5px' }}>Próxima Acción</h3>
-            <p className="mono-text" style={{ fontSize: '0.65rem', marginBottom: '20px' }}>Sugerida por tu reloj biológico.</p>
+          <div className="glass-widget" style={{ width: '380px', pointerEvents: 'all' }}>
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>Próxima Acción</h3>
+            <p className="mono-text" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '25px', letterSpacing: '1px' }}>SUGERIDA POR TU RELOJ BIOLÓGICO.</p>
             <div>
               {!suggestedTask ? (
-                <p style={{ fontSize: '0.9rem', textAlign: 'center', margin: '20px 0' }}>No hay tareas en el Inbox.</p>
+                <div style={{ padding: '30px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#888', margin: 0 }}>No hay tareas en el Inbox.</p>
+                </div>
               ) : (
-                <div className="task-item" style={{ '--task-color': suggestedTask.tag === 'alta' ? 'var(--cyan)' : suggestedTask.tag === 'creativa' ? 'var(--violet)' : '#ffb400', padding: '20px', display: 'block' }} onClick={() => handleTaskClick(suggestedTask.id, suggestedTask.tag, suggestedTask.title)}>
-                  <span className="task-tag" style={{ color: suggestedTask.tag === 'alta' ? 'var(--cyan)' : suggestedTask.tag === 'creativa' ? 'var(--violet)' : '#ffb400', display: 'block', marginBottom: '5px' }}>
-                    {suggestedTask.tag === 'alta' ? 'Alta Carga' : suggestedTask.tag === 'creativa' ? 'Media Carga' : 'Baja Carga'} - SUGERIDA AHORA
+                <div className="task-item" style={{ '--task-color': suggestedTask.tag === 'alta' ? 'var(--cyan)' : suggestedTask.tag === 'creativa' ? 'var(--violet)' : '#ffb400', padding: '25px', display: 'block', cursor: 'pointer' }} onClick={() => handleTaskClick(suggestedTask.id, suggestedTask.tag, suggestedTask.title)}>
+                  <span className="task-tag" style={{ color: suggestedTask.tag === 'alta' ? 'var(--cyan)' : suggestedTask.tag === 'creativa' ? 'var(--violet)' : '#ffb400', display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '1px' }}>
+                    {taskOptions.find(opt => opt.value === suggestedTask.tag)?.label.toUpperCase()} - SUGERIDA AHORA
                   </span>
-                  <div className="task-title" style={{ fontSize: '1.1rem', marginBottom: '10px' }}>{suggestedTask.title}</div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>[ CLIC PARA COMPLETAR ]</div>
+                  <div className="task-title" style={{ fontSize: '1.15rem', marginBottom: '15px' }}>{suggestedTask.title}</div>
+                  <div style={{ color: 'var(--cyan)', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', letterSpacing: '2px' }}>[ INICIAR SESIÓN ]</div>
                 </div>
               )}
             </div>
-            <button className="btn" style={{ padding: '12px', marginTop: '15px', borderColor: 'rgba(0, 242, 255, 0.3)' }} onClick={() => navTo('agenda')}>Ver Agenda Completa</button>
+            <button className="btn" style={{ padding: '15px', marginTop: '20px', width: '100%', borderColor: 'rgba(0, 242, 255, 0.3)', fontSize: '0.85rem', letterSpacing: '2px', background: 'rgba(0,242,255,0.05)' }} onClick={() => navTo('agenda')}>VER AGENDA COMPLETA</button>
           </div>
         </div>
       )}
 
       {currentView === 'agenda' && (
         <div id="mod-agenda" className="module active" style={{ overflowY: 'auto' }}>
-          <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '140px 50px 150px 50px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
-            <div className="glass-widget" style={{ flex: 1 }}>
-              <h2 style={{ fontSize: '1.8rem', marginBottom: '20px' }}>Perfil Biológico</h2>
-              <div style={{ marginBottom: '20px' }}>
-                <p className="mono-text">CRONOTIPO</p>
-                <p style={{ fontSize: '1.1rem', color: 'var(--cyan)' }}>{chronotype || 'Desconocido'}</p>
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <p className="mono-text">ESTADO ENERGÉTICO ACTUAL</p>
-                <p style={{ fontSize: '1.1rem' }}>{(energyLevel * 100).toFixed(1)}% ({energyLevel > 0.6 ? 'Pico Activo' : energyLevel < 0.4 ? 'Valle / Fatiga' : 'Intermedio'})</p>
+          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: '140px 50px 150px 50px' }}>
+            {/* AGENDA HEADER / SELECTORS */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '2.5rem', margin: 0 }}>Auto-Scheduler</h2>
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {['DÍA', 'SEMANA', 'MES'].map(mode => (
+                  <button key={mode} className="mono-text" style={{ background: mode === 'DÍA' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.7rem', letterSpacing: '2px' }}>{mode}</button>
+                ))}
               </div>
             </div>
-            <div className="glass-widget" style={{ flex: 2 }}>
-              <h2 style={{ fontSize: '1.8rem', marginBottom: '25px' }}>Auto-Scheduler</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {tasks.length === 0 ? <p style={{ color: '#888' }}>Tu agenda está vacía.</p> : tasks.map(t => {
-                  let hexColor = t.tag === 'alta' ? 'var(--cyan)' : t.tag === 'creativa' ? 'var(--violet)' : '#ffb400';
-                  let tagLabel = t.tag === 'alta' ? 'Alta (Matemáticas, Proyectos)' : t.tag === 'creativa' ? 'Media (Leer, Escribir)' : 'Baja (Organizar)';
-                  return (
-                    <div key={t.id} className="task-item" style={{ '--task-color': hexColor }} onClick={() => handleTaskClick(t.id, t.tag, t.title)}>
-                      <div className="task-info">
-                        <span className="task-title" style={{ display: 'block', color: '#fff' }}>{t.title}</span>
-                        <span className="task-tag" style={{ color: hexColor, opacity: 0.8 }}>{tagLabel} | {t.deadline}</span>
-                      </div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)' }}>[ INICIAR POMODORO ]</div>
+
+            <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+              {/* MAIN TASKS AREA */}
+              <div style={{ flex: 3 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {tasks.length === 0 ? (
+                    <div className="glass-widget" style={{ textAlign: 'center', padding: '100px 0' }}>
+                      <p style={{ color: '#555', fontSize: '1.2rem' }}>Tu agenda está despejada.</p>
+                      <button className="btn" style={{ width: 'auto', padding: '10px 30px' }} onClick={() => navTo('dashboard')}>CAPTURAR TAREA</button>
                     </div>
-                  );
-                })}
+                  ) : tasks.map(t => {
+                    let hexColor = t.tag === 'alta' ? 'var(--cyan)' : t.tag === 'creativa' ? 'var(--violet)' : '#ffb400';
+                    let tagLabel = taskOptions.find(opt => opt.value === t.tag)?.label || 'Desconocido';
+                    return (
+                      <div key={t.id} className="task-item" style={{ '--task-color': hexColor, background: 'rgba(255,255,255,0.02)' }} onClick={() => handleTaskClick(t.id, t.tag, t.title)}>
+                        <div className="task-info">
+                          <span className="task-title" style={{ display: 'block', color: '#fff', fontSize: '1.1rem' }}>{t.title}</span>
+                          <span className="task-tag" style={{ color: hexColor, opacity: 0.8 }}>{tagLabel} • {t.deadline}</span>
+                        </div>
+                        <div style={{ color: hexColor, fontSize: '0.65rem', fontFamily: 'var(--font-mono)', letterSpacing: '1px' }}>[ INICIAR SESIÓN ]</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* URGENT SIDEBAR */}
+              <div style={{ flex: 1.2 }}>
+                <div className="glass-widget" style={{ padding: '30px', border: '1px solid rgba(255,0,80,0.1)' }}>
+                  <h3 className="mono-text" style={{ fontSize: '0.7rem', color: 'var(--red)', marginBottom: '20px', letterSpacing: '2px' }}>TAREAS URGENTES</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {tasks.filter(t => t.tag === 'alta').slice(0, 3).map(t => (
+                      <div key={t.id} style={{ borderLeft: '2px solid var(--red)', paddingLeft: '15px' }}>
+                        <div style={{ fontSize: '0.9rem', marginBottom: '5px' }}>{t.title}</div>
+                        <div className="mono-text" style={{ fontSize: '0.55rem', color: '#555' }}>ENTREGA: {t.deadline}</div>
+                      </div>
+                    ))}
+                    {tasks.filter(t => t.tag === 'alta').length === 0 && (
+                      <p style={{ fontSize: '0.8rem', color: '#444' }}>No hay alertas críticas detectadas.</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="glass-widget" style={{ marginTop: '20px', padding: '30px' }}>
+                  <h3 className="mono-text" style={{ fontSize: '0.7rem', color: 'var(--cyan)', marginBottom: '20px', letterSpacing: '2px' }}>CONSEJO BIOLÓGICO</h3>
+                  <p style={{ fontSize: '0.85rem', color: '#888', lineHeight: 1.6 }}>
+                    {energyOverride === 'fatigue' ? 
+                      'Corrección por desvelo activa: Tu energía está limitada. Prioriza el descanso y tareas de baja carga hoy.' :
+                      `Tu energía está en ${energyLevel > 0.6 ? 'Pico' : 'Fase estable'}. Es un buen momento para ${energyLevel > 0.6 ? 'enfrentar las tareas de Alta Carga' : 'gestionar tareas administrativas'}.`
+                    }
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {currentView === 'study' && (
-        <div id="mod-study" className="module active" style={{ alignItems: 'center', justifyContent: 'center', paddingTop: '100px', paddingBottom: '20px' }}>
-          <div className="glass-widget" style={{ width: '100%', maxWidth: '800px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '25px 30px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.4)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: '1.6rem', marginBottom: '5px' }}>Lumi</h2>
-                <p className="mono-text" style={{ fontSize: '0.7rem' }}>Tu compañera biológica (Asistencia por texto).</p>
-              </div>
-              <div className="mono-text" style={{ color: 'var(--cyan)', fontSize: '0.65rem', border: '1px solid rgba(0,242,255,0.2)', padding: '5px 10px', borderRadius: '20px' }}>En Línea</div>
-            </div>
-            
-            <div id="chat-history" style={{ flex: 1, overflowY: 'auto', padding: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {chatHistory.map((msg, i) => (
-                <div key={i} className={msg.role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user'}>
-                  {msg.role === 'ai' && (
-                    <div className="ai-avatar" style={{ 
-                      background: msg.energyLevel > 0.6 ? 'rgba(0, 242, 255, 0.2)' : msg.energyLevel < 0.4 ? 'rgba(255, 0, 80, 0.2)' : msg.energyLevel ? 'rgba(188, 19, 254, 0.2)' : 'rgba(0, 242, 255, 0.2)', 
-                      border: msg.energyLevel > 0.6 ? '1px solid rgba(0, 242, 255, 0.4)' : msg.energyLevel < 0.4 ? '1px solid rgba(255, 0, 80, 0.4)' : msg.energyLevel ? '1px solid rgba(188, 19, 254, 0.4)' : '1px solid rgba(0, 242, 255, 0.4)',
-                      boxShadow: msg.energyLevel > 0.6 ? '0 0 15px var(--cyan)' : msg.energyLevel < 0.4 ? '0 0 15px var(--red)' : msg.energyLevel ? '0 0 15px var(--violet)' : 'none'
-                    }}>
-                      <div style={{ 
-                        width: '10px', height: '10px', borderRadius: '50%', 
-                        background: msg.energyLevel > 0.6 ? 'var(--cyan)' : msg.energyLevel < 0.4 ? 'var(--red)' : msg.energyLevel ? 'var(--violet)' : 'var(--cyan)',
-                        boxShadow: msg.energyLevel > 0.6 ? '0 0 10px var(--cyan)' : msg.energyLevel < 0.4 ? '0 0 10px var(--red)' : msg.energyLevel ? '0 0 10px var(--violet)' : '0 0 10px var(--cyan)' 
-                      }}></div>
-                    </div>
-                  )}
-                  <div className="chat-text" style={{ whiteSpace: 'pre-line' }}>
-                    {msg.status === 'loading' && <span className="ai-spinner" style={{ width: '15px', height: '15px', borderWidth: '2px', display: 'inline-block', verticalAlign: 'middle', marginRight: '10px' }}></span>}
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
+      {currentView === 'profile' && (
+        <div id="mod-profile" className="module active" style={{ overflowY: 'auto' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '140px 50px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <h2 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Identidad Biológica</h2>
+              <p className="mono-text" style={{ color: 'var(--cyan)', letterSpacing: '4px' }}>NIVEL 1</p>
             </div>
 
-            <div style={{ padding: '20px 30px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.4)', display: 'flex', gap: '15px', flexShrink: 0, alignItems: 'center' }}>
-              <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} className="input-modern" style={{ borderRadius: '30px', padding: '16px 25px', background: 'rgba(20,20,20,0.8)', flex: 1, fontSize: '0.95rem' }} placeholder="Ej: Explícame cómo funciona la termodinámica..." onKeyPress={e => e.key === 'Enter' && sendChatMessage()} />
-              <button className="btn-icon" style={{ width: '50px', height: '50px', background: 'rgba(0, 242, 255, 0.1)', color: 'var(--cyan)', border: '1px solid var(--cyan)', flexShrink: 0, borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={sendChatMessage}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7" /><path d="M12 19V5" /></svg>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px', alignItems: 'stretch' }}>
+              {/* PANEL PRINCIPAL: ESTADO Y CALIBRACIÓN */}
+              <div className="glass-widget" style={{ padding: '50px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', zIndex: 2 }}>
+                  <h3 className="mono-text" style={{ fontSize: '0.9rem', color: 'var(--violet)', marginBottom: '40px', letterSpacing: '4px' }}>MONITOREO NEURAL ACTIVO</h3>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '20px' }}>
+                    <div style={{ fontSize: '7rem', fontWeight: 700, lineHeight: 1 }}>{(energyLevel * 100).toFixed(0)}%</div>
+                    <div>
+                      <div className="mono-text" style={{ fontSize: '1rem', color: 'var(--cyan)', marginBottom: '5px', letterSpacing: '2px' }}>ESTADO ACTUAL</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 300 }}>
+                        {energyLevel > 0.75 ? "Lógica Máxima" : energyLevel > 0.45 ? "Foco Creativo" : "Gestión Rutinaria"}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p style={{ fontSize: '1.1rem', color: '#bbb', maxWidth: '600px', marginBottom: '60px', lineHeight: 1.6 }}>
+                    Tu cerebro está listo para <b>{energyLevel > 0.75 ? 'resolver problemas complejos y análisis' : energyLevel > 0.45 ? 'diseñar, escribir y crear' : 'organizar correos y tareas administrativas'}</b>.
+                  </p>
+
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                      <h4 className="mono-text" style={{ fontSize: '0.9rem', color: '#888', margin: 0 }}>SINTONIZACIÓN MANUAL</h4>
+                      <div style={{ fontSize: '1.2rem', color: energyOverride > 5 ? 'var(--cyan)' : energyOverride < 5 ? 'var(--red)' : '#fff', fontWeight: 700 }}>
+                        {energyOverride}/10
+                      </div>
+                    </div>
+                    
+                    <input 
+                      type="range" min="1" max="10" step="1" 
+                      value={energyOverride}
+                      onChange={(e) => setEnergyOverride(parseInt(e.target.value))}
+                      style={{ 
+                        width: '100%', height: '8px', borderRadius: '10px', appearance: 'none', cursor: 'pointer',
+                        background: `linear-gradient(to right, var(--red) 0%, var(--violet) 50%, var(--cyan) 100%)`
+                      }}
+                    />
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+                      <span className="mono-text" style={{ fontSize: '0.6rem', color: 'var(--red)' }}>1 - AGOTADO</span>
+                      <span className="mono-text" style={{ fontSize: '0.6rem', color: '#555' }}>5 - NEUTRAL</span>
+                      <span className="mono-text" style={{ fontSize: '0.6rem', color: 'var(--cyan)' }}>10 - ÓPTIMO</span>
+                    </div>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '25px', lineHeight: 1.5 }}>
+                      Ajusta este valor si sientes que tu capacidad actual no coincide con tu ciclo circadiano.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* COLUMNA LATERAL: CRONOTIPO Y NIVEL */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                <div className="glass-widget" style={{ padding: '40px' }}>
+                  <h3 className="mono-text" style={{ fontSize: '0.9rem', color: 'var(--cyan)', marginBottom: '25px', letterSpacing: '2px' }}>CRONOTIPO</h3>
+                  <div style={{ fontSize: '1.8rem', marginBottom: '20px', fontWeight: 600 }}>{chronotype?.split(' ')[0] || 'Oso'}</div>
+                  <p style={{ fontSize: '1rem', color: '#999', lineHeight: 1.6, margin: 0 }}>
+                    {chronotype?.includes('Lobo') ? "Productividad nocturna. Tu pico de dopamina es al anochecer." :
+                     chronotype?.includes('León') ? "Madrugador eficiente. Energía máxima al amanecer." :
+                     chronotype?.includes('Delfín') ? "Adaptable. Ráfagas de alta intensidad cognitiva." :
+                     "Ciclo solar. Productividad máxima a media mañana."}
+                  </p>
+                </div>
+
+                <div className="glass-widget" style={{ padding: '40px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+                  <div className="mono-text" style={{ fontSize: '0.7rem', color: 'var(--cyan)', marginBottom: '20px', letterSpacing: '6px' }}>ESTADO</div>
+                  <div style={{ fontSize: '3rem', fontWeight: 700 }}>NIVEL 1</div>
+                  <div style={{ marginTop: '30px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ width: '30%', height: '100%', background: 'var(--cyan)', boxShadow: '0 0 15px var(--cyan)' }}></div>
+                  </div>
+                  <p className="mono-text" style={{ fontSize: '0.65rem', color: '#555', marginTop: '15px' }}>PRÓXIMO RANGO: 750 PTS</p>
+                </div>
+              </div>
+            </div>
+
+            <button className="btn" style={{ marginTop: '50px', borderColor: 'rgba(255,255,255,0.1)', color: '#666' }} onClick={() => { setChronotype(''); navTo('auth'); }}>REINICIAR DIAGNÓSTICO MCTQ</button>
+          </div>
+        </div>
+      )}
+
+      {currentView === 'study' && (
+        <div id="mod-study" className="module active" style={{ 
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+          zIndex: 10, overflow: 'hidden', padding: 0
+        }}>
+          
+          {/* RIGHT CANVAS LAYER: Floating content (Flashcards, etc.) */}
+          <div style={{ 
+            position: 'absolute', 
+            right: '40px', 
+            top: '120px', 
+            bottom: '80px', 
+            left: (isChatCollapsed || !isPanelOpen) ? '40px' : '460px', 
+            zIndex: 1, 
+            opacity: isPanelOpen ? 1 : 0, 
+            pointerEvents: isPanelOpen ? 'all' : 'none',
+            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {panelContent?.status === 'loading' ? (
+              <div style={{ textAlign: 'center' }}>
+                <div className="ai-spinner" style={{ width: '60px', height: '60px', marginBottom: '30px' }}></div>
+                <p className="mono-text" style={{ color: 'var(--cyan)', letterSpacing: '5px' }}>GENERANDO FLASHCARDS...</p>
+              </div>
+            ) : (isPanelOpen && panelContent) && (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FlashcardsMock topic={panelContent.topic} />
+              </div>
+            )}
+          </div>
+
+          {/* HUD LAYER: Floating Chat Console */}
+          {!isChatCollapsed && (
+            <div className="glass-widget" style={{ 
+              position: 'absolute', 
+              left: isPanelOpen ? '40px' : '50%', 
+              top: isPanelOpen ? '120px' : '50%',
+              transform: isPanelOpen ? 'none' : 'translate(-50%, -50%)',
+              bottom: '40px', 
+              width: isPanelOpen ? '380px' : '850px', 
+              height: isPanelOpen ? 'auto' : '650px',
+              maxWidth: '92vw',
+              zIndex: 50, display: 'flex', flexDirection: 'column',
+              padding: 0, overflow: 'hidden', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              background: 'rgba(10,10,12,0.85)', backdropFilter: 'blur(40px)',
+              boxShadow: '0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.05)'
+            }}>
+              <div style={{ padding: '20px 30px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ fontSize: isPanelOpen ? '1.1rem' : '1.8rem', marginBottom: '2px', transition: 'all 0.5s' }}>Lumi</h2>
+                  <p className="mono-text" style={{ fontSize: '0.5rem', opacity: 0.5, letterSpacing: '2px' }}>NEURO-ASISTENTE</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div className="mono-text" style={{ color: 'var(--cyan)', fontSize: '0.55rem', border: '1px solid rgba(0,242,255,0.3)', padding: '4px 10px', borderRadius: '20px' }}>SYNC</div>
+                  {isPanelOpen && <button onClick={() => setIsChatCollapsed(true)} className="btn-icon" style={{ width: '28px', height: '28px', opacity: 0.3, border: 'none' }}>✕</button>}
+                </div>
+              </div>
+              
+              <div style={{ flex: 1, overflowY: 'auto', padding: isPanelOpen ? '20px' : '40px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {chatHistory.map((msg, i) => (
+                  <div key={i} className={msg.role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user'}>
+                    {msg.role === 'ai' && (
+                      <div className="ai-avatar" style={{ 
+                        width: '30px', height: '30px', fontSize: '0.55rem',
+                        background: 'rgba(0, 242, 255, 0.1)', border: '1px solid rgba(0,242,255,0.3)'
+                      }}>
+                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--cyan)' }}></div>
+                      </div>
+                    )}
+                    <div className="chat-text" style={{ fontSize: isPanelOpen ? '0.85rem' : '1rem' }}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* COMPACT INPUT STYLE */}
+              <div style={{ padding: isPanelOpen ? '15px 20px' : '25px 40px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
+                {!isPanelOpen && (
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
+                    {['chat', 'flashcards'].map(mode => (
+                      <button key={mode} onClick={() => setChatMode(mode)} style={{ 
+                        padding: '6px 15px', borderRadius: '10px', fontSize: '0.6rem', cursor: 'pointer', fontFamily: 'var(--font-mono)', transition: 'all 0.3s',
+                        background: chatMode === mode ? 'rgba(0, 242, 255, 0.1)' : 'transparent',
+                        border: chatMode === mode ? '1px solid var(--cyan)' : '1px solid rgba(255,255,255,0.05)',
+                        color: chatMode === mode ? 'var(--cyan)' : '#666', letterSpacing: '1px'
+                      }}>
+                        {mode.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', maxWidth: isPanelOpen ? '100%' : '800px', margin: '0 auto' }}>
+                  <input 
+                    type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} 
+                    className="input-modern" style={{ flex: 1, borderRadius: '30px', background: 'rgba(255,255,255,0.03)', padding: isPanelOpen ? '10px 20px' : '15px 25px', fontSize: isPanelOpen ? '0.85rem' : '1rem' }} 
+                    placeholder="¿Qué aprenderemos hoy?" onKeyPress={e => e.key === 'Enter' && sendChatMessage()}
+                  />
+                  <button className="btn-icon" style={{ width: '40px', height: '40px', background: 'var(--cyan)', color: '#000', border: 'none', boxShadow: '0 0 20px rgba(0,242,255,0.3)' }} onClick={sendChatMessage}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* HUD CONTROLS: Floating Buttons */}
+          <div style={{ position: 'absolute', top: '110px', right: '40px', zIndex: 100, display: 'flex', gap: '15px', alignItems: 'center' }}>
+            {(isChatCollapsed || !isPanelOpen) && isPanelOpen && (
+              <button onClick={() => setIsChatCollapsed(false)} className="btn-icon" style={{ width: '45px', height: '45px', background: 'rgba(0,242,255,0.1)', color: 'var(--cyan)', border: '1px solid var(--cyan)', backdropFilter: 'blur(10px)' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </button>
+            )}
+            <div style={{ display: 'flex', background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '30px', backdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <button onClick={() => setIsNavbarCollapsed(!isNavbarCollapsed)} className="btn-icon" style={{ width: '40px', height: '40px', background: isNavbarCollapsed ? 'var(--cyan)' : 'transparent', color: isNavbarCollapsed ? '#000' : '#fff', border: 'none' }}>
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></svg>
+              </button>
+              {isPanelOpen && (
+                <button onClick={() => setIsPanelOpen(false)} className="btn-icon" style={{ width: '40px', height: '40px', border: 'none', opacity: 0.5 }}>
+                   ✕
+                </button>
+              )}
             </div>
           </div>
+
         </div>
       )}
     </>

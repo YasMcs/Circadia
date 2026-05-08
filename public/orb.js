@@ -24,34 +24,54 @@ function draw() {
   jaggedness = 2; 
 
   if (app.orbState === 'login' || app.orbState === 'neutral') {
-    let cycle = (sin(frameCount * 0.015) + 1) / 2; 
-    let cValle = color(255, 30, 0, 10); let sValle = color(255, 40, 0, 100); 
-    let cMid = color(188, 19, 254, 25); let sMid = color(188, 19, 254, 180);
-    let cPico = color(0, 240, 255, 30); let sPico = color(0, 242, 255, 230); 
+    let cycle = (sin(frameCount * 0.01) + 1) / 2; 
+    let cValle = color(255, 40, 80, 10); let sValle = color(255, 45, 85, 120); // Luxury Deep Coral
+    let cMid = color(157, 0, 255, 25); let sMid = color(160, 10, 255, 190);   // Electric Indigo
+    let cPico = color(0, 255, 242, 30); let sPico = color(5, 255, 245, 240);  // Ultra Neon Cyan
 
     if (cycle < 0.5) {
       let amt = map(cycle, 0, 0.5, 0, 1);
       targetColor = lerpColor(cValle, cMid, amt); targetStroke = lerpColor(sValle, sMid, amt);
-      amp = lerp(15, 40, amt); noiseScale = lerp(0.8, 1.5, amt); jaggedness = lerp(1.2, 2, amt);
+      amp = lerp(15, 50, amt); noiseScale = lerp(0.8, 1.8, amt); jaggedness = lerp(1.2, 2.2, amt);
     } else {
       let amt = map(cycle, 0.5, 1.0, 0, 1);
       targetColor = lerpColor(cMid, cPico, amt); targetStroke = lerpColor(sMid, sPico, amt);
-      amp = lerp(40, 120, amt); noiseScale = lerp(1.5, 3.5, amt); jaggedness = lerp(2, 3.5, amt);
+      amp = lerp(50, 140, amt); noiseScale = lerp(1.8, 4.0, amt); jaggedness = lerp(2.2, 3.8, amt);
     }
-    speed = lerp(0.002, 0.025, cycle); pSpeed = lerp(0.001, 0.035, cycle);
+    speed = lerp(0.003, 0.03, cycle); pSpeed = lerp(0.002, 0.04, cycle);
   } 
   else if (app.orbState === 'study') {
-    targetColor = color(0, 240, 255, 15); targetStroke = color(0, 240, 255, 120); 
-    amp = 15; noiseScale = 0.5; speed = 0.01; pSpeed = 0.005; jaggedness = 1.0;
+    // MAJESTIC BUT CONTROLLED STUDY MODE
+    let pulse = (sin(frameCount * 0.01) + 1) / 2;
+    let cCyan = color(0, 255, 242, 25); let sCyan = color(0, 255, 242, 220);
+    let cIndigo = color(157, 0, 255, 30); let sIndigo = color(160, 10, 255, 180);
+    
+    targetColor = lerpColor(cCyan, cIndigo, pulse);
+    targetStroke = lerpColor(sCyan, sIndigo, pulse);
+    
+    amp = lerp(40, 110, pulse); 
+    noiseScale = lerp(1.2, 2.8, pulse); 
+    speed = lerp(0.01, 0.03, pulse); 
+    pSpeed = lerp(0.008, 0.035, pulse); 
+    jaggedness = lerp(1.8, 3.0, pulse);
   }
   else {
-    let cValle = color(255, 30, 0, 10); let sValle = color(255, 40, 0, 100); 
-    let cPico = color(0, 240, 255, 40); let sPico = color(0, 242, 255, 230); 
-    targetColor = lerpColor(cValle, cPico, app.energyLevel);
-    targetStroke = lerpColor(sValle, sPico, app.energyLevel);
-    amp = lerp(15, 120, app.energyLevel); noiseScale = lerp(0.8, 3.5, app.energyLevel);
-    speed = lerp(0.002, 0.025, app.energyLevel); pSpeed = lerp(0.001, 0.035, app.energyLevel);
-    jaggedness = lerp(1.2, 3.5, app.energyLevel);
+    // BALANCED ENERGY TRANSITION
+    let cValle = color(255, 40, 80, 10); let sValle = color(255, 45, 85, 120); 
+    let cMid = color(157, 0, 255, 25); let sMid = color(160, 10, 255, 190);
+    let cPico = color(0, 255, 242, 40); let sPico = color(5, 255, 245, 250); 
+    
+    if (app.energyLevel < 0.5) {
+      let amt = map(app.energyLevel, 0, 0.5, 0, 1);
+      targetColor = lerpColor(cValle, cMid, amt); targetStroke = lerpColor(sValle, sMid, amt);
+    } else {
+      let amt = map(app.energyLevel, 0.5, 1.0, 0, 1);
+      targetColor = lerpColor(cMid, cPico, amt); targetStroke = lerpColor(sMid, sPico, amt);
+    }
+    
+    amp = lerp(20, 110, app.energyLevel); noiseScale = lerp(0.8, 3.2, app.energyLevel);
+    speed = lerp(0.003, 0.025, app.energyLevel); pSpeed = lerp(0.002, 0.035, app.energyLevel);
+    jaggedness = lerp(1.2, 3.0, app.energyLevel);
   }
 
   let baseRadiusOffset = 0;
@@ -98,21 +118,27 @@ function draw() {
     p.draw(targetStroke);
   }
 
-  for (let layer = 0; layer < 2; layer++) {
-    let rMult = 1 - (layer * 0.2);
+  for (let layer = 0; layer < 3; layer++) {
+    let rMult = 1 - (layer * 0.25);
     fill(targetColor); stroke(targetStroke); strokeWeight(layer===0 ? 2 : 1);
     if(layer === 0) {
-      drawingContext.shadowBlur = 35 + (orbReaction * 35);
+      drawingContext.shadowBlur = 45 + (orbReaction * 40);
       drawingContext.shadowColor = targetStroke.toString();
     } else { drawingContext.shadowBlur = 0; }
 
     beginShape();
-    for (let i = 0; i < 150; i++) {
-      let angle = map(i, 0, 150, 0, TWO_PI);
+    let vertices = 300; 
+    for (let i = 0; i < vertices; i++) {
+      let angle = map(i, 0, vertices, 0, TWO_PI);
       let xoff = map(cos(angle), -1, 1, 0, 2) * noiseScale;
       let yoff = map(sin(angle), -1, 1, 0, 2) * noiseScale;
-      let n = noise(xoff, yoff, timeVar);
-      let r = (200 * rMult) + baseRadiusOffset + map(pow(n, jaggedness), 0, 1, -amp, amp);
+      let n = noise(xoff + (layer * 20), yoff + (layer * 20), timeVar);
+      
+      // SOPHISTICATED SPIKES (Controlled elegance)
+      let spikeMod = pow(n, jaggedness);
+      // Inner layers stay more circular, outer layers get the energy
+      let currentAmp = amp * (1 - layer * 0.2); 
+      let r = (200 * rMult) + baseRadiusOffset + map(spikeMod, 0, 1, -currentAmp * 0.5, currentAmp);
       vertex(r * cos(angle), r * sin(angle));
     }
     endShape(CLOSE);
